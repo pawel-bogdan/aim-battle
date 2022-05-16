@@ -4,12 +4,14 @@ import java.util.*;
 
 public class Room {
     private static int generatedQueues = 0;
+    private Player host;
     private int id;
-    HashMap<Color, Player> players;
+    Map<Color, Player> players;
 
-    public Room() {
+    public Room(Player host) {
         id = generatedQueues++;
-        players = new HashMap<>(4);
+        host = host;
+        players = new LinkedHashMap<>(4);
     }
 
     public void add(Player player) {
@@ -23,5 +25,17 @@ public class Room {
         else
             color = Color.YELLOW;
         players.put(color, player);
+    }
+
+    public static int getGeneratedQueues() {
+        return generatedQueues;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public LinkedHashMap<Color, Player> getPlayers() {
+        return (LinkedHashMap<Color, Player>) players;
     }
 }

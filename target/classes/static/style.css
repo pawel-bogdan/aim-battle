@@ -1,10 +1,22 @@
-#gamePanelWrapper.active {
+#game{
+    display: none;
+}
+
+#rooms{
+    display: none;
+    width: 30vw;
+    height: 70vh;
+    background-color: rgba(84, 61, 171, 0.8);
+}
+
+#gamePanelWrapper {
+    display: inline-block;
     position: absolute;
-    left: calc(50% - 640px);
-    top: calc(50% - 360px);
-    background-color: rgba(0, 22, 36, 0.8);
-    width: 1280px;
-    height: 720px;
+    left: calc(50% - 320px);
+    top: calc(50% - 180px);
+    background-color: rgba(100, 53, 153, 0.8);
+    width: 640px;
+    height: 360px;
 }
 
 #gamePanel {
@@ -48,11 +60,11 @@
 }
 
 #queue {
-    display: none;
+    position: absolute;
+    display: inline-block;
     width: 20vw;
     height: 30vh;
-    position: absolute;
-    left: 30vw;
-    top: 30vh;
+    left: calc(50% + 320px);
+    top: calc(50% - 180px);
     background-color: #fff;
 }
