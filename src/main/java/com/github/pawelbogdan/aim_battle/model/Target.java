@@ -1,5 +1,6 @@
 package com.github.pawelbogdan.aim_battle.model;
 
+@SuppressWarnings("unused") // jackson needs public getters
 public class Target {
     private static int generatedTargets = 0;
     private int id;
@@ -16,23 +17,11 @@ public class Target {
         return id;
     }
 
-    void setId(int id) {
-        this.id = id;
-    }
-
     public int getxLocation() {
         return xLocation;
     }
 
-    void setxLocation(int xLocation) {
-        this.xLocation = xLocation;
-    }
-
     public int getyLocation() {
         return yLocation;
-    }
-
-    void setyLocation(int yLocation) {
-        this.yLocation = yLocation;
     }
 }

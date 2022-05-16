@@ -1,5 +1,6 @@
-package com.github.pawelbogdan.aim_battle;
+package com.github.pawelbogdan.aim_battle.controller;
 
+import com.github.pawelbogdan.aim_battle.service.TargetService;
 import com.github.pawelbogdan.aim_battle.model.Target;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;

@@ -1,5 +1,6 @@
 package com.github.pawelbogdan.aim_battle.model;
 
+@SuppressWarnings("unused") // jackson needs public getters
 public class MousePosition {
     private String player;
     private int xLocation;
@@ -15,24 +16,12 @@ public class MousePosition {
         return player;
     }
 
-    void setPlayer(String player) {
-        this.player = player;
-    }
-
     public int getxLocation() {
         return xLocation;
     }
 
-    void setxLocation(int xLocation) {
-        this.xLocation = xLocation;
-    }
-
     public int getyLocation() {
         return yLocation;
-    }
-
-    void setyLocation(int yLocation) {
-        this.yLocation = yLocation;
     }
 
     @Override

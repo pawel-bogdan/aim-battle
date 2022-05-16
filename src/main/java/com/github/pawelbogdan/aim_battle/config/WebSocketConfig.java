@@ -16,7 +16,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/targets", "/mouse-position");
+        registry.enableSimpleBroker("/targets", "/mouse-position", "/rooms");
         registry.setApplicationDestinationPrefixes("/game"); // pozniej sie to zmieni
     }
 

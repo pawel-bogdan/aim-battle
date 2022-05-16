@@ -1,4 +1,4 @@
-package com.github.pawelbogdan.aim_battle;
+package com.github.pawelbogdan.aim_battle.controller;
 
 import com.github.pawelbogdan.aim_battle.model.MousePosition;
 import org.springframework.messaging.handler.annotation.MessageMapping;

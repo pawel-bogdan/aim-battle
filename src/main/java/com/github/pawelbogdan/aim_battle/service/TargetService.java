@@ -1,4 +1,4 @@
-package com.github.pawelbogdan.aim_battle;
+package com.github.pawelbogdan.aim_battle.service;
 
 import com.github.pawelbogdan.aim_battle.model.Target;
 import org.springframework.stereotype.Service;
