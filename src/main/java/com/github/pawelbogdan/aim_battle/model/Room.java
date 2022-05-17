@@ -2,6 +2,7 @@ package com.github.pawelbogdan.aim_battle.model;
 
 import java.util.*;
 
+@SuppressWarnings("unused") // jackson needs public getters
 public class Room {
     private static int generatedQueues = 0;
     private Player host;
@@ -10,8 +11,9 @@ public class Room {
 
     public Room(Player host) {
         id = generatedQueues++;
-        host = host;
+        this.host = host;
         players = new LinkedHashMap<>(4);
+        add(this.host);
     }
 
     public void add(Player player) {
@@ -37,5 +39,17 @@ public class Room {
 
     public LinkedHashMap<Color, Player> getPlayers() {
         return (LinkedHashMap<Color, Player>) players;
+    }
+
+    public Player getHost() {
+        return host;
+    }
+
+    @Override
+    public String toString() {
+        return "Room{" +
+                "id=" + id +
+                ", players=" + players +
+                '}';
     }
 }

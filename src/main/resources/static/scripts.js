@@ -1,18 +1,20 @@
 let opponentCrosshair = document.createElement('img');
-let currentRoomId = null;
 opponentCrosshair.src = 'images/crosshair_blue.png';
 opponentCrosshair.classList.add('crosshair');
 document.getElementById('gamePanelWrapper').appendChild(opponentCrosshair);
 
 let audio = new Audio('audio/shot.mp3');
+
 document.getElementById('submitPlayer').onclick = displayRooms;
 document.getElementById('createRoom').onclick = createRoom;
 document.getElementById('startGame').onclick = startGame;
+
+let currentRoomId = null;
 let stompClient = null;
 let player = null;
 connect();
 document.getElementById('gamePanel').onmousemove = updateMousePosition;
-
+readAllActualRooms();
 function connect() {
     let socket = new SockJS("/aim-battle");
     stompClient = Stomp.over(socket);
@@ -41,20 +43,28 @@ function connect() {
         });
 
         stompClient.subscribe('/rooms/player-joined', function (room) {
-            let playersMap = new Map(Object.entries(JSON.parse(room.body).players));
-            document.getElementById('listOfPlayers').innerHTML="";
-            for (const [key, value] of playersMap.entries()) {
-                let playerX = document.createElement('li')
-                playerX.innerHTML = `${key} ${value.nick}`;
-                document.getElementById('listOfPlayers').appendChild(playerX);
+            let roomObj = JSON.parse(room.body);
+            if(roomObj.id == currentRoomId) {
+                let playersMap = new Map(Object.entries(roomObj.players));
+                for (const [key, value] of playersMap.entries()) {
+                    let playerElem = document.createElement('li')
+                    playerElem.innerHTML = `${key} ${value.nick}`;
+                    document.getElementById('listOfPlayers').appendChild(playerElem);
+                }
             }
         });
 
-        stompClient.subscribe('/rooms/created-rooms', function (room){
-            let roomX = document.createElement('li');
-            roomX.innerHTML = `Pokoj nr ${room.id}  <button type="button" id="joinRoom${room.id}">DOŁĄCZ</button>`;
-            document.getElementById('roomList').appendChild(roomX);
-            addToRoom(room);
+        stompClient.subscribe('/rooms/created-rooms', function (room) {
+            let roomElem = document.createElement('li');
+            let roomObj = JSON.parse(room.body);
+            if(roomObj.host.nick === player) {
+                currentRoomId = roomObj.id;
+                document.getElementById('game').style.display = 'block';
+            }
+            roomElem.innerHTML = `<p>Pokoj ${roomObj.id}. (${new Map(Object.entries(roomObj.players)).size} / 4) </p> 
+           <button type="button" id="room${roomObj.id} room-id="${roomObj.id}" onclick="joinToRoom(${roomObj.id})">DOŁĄCZ</button>`;
+            document.getElementById('roomList').appendChild(roomElem);
+
         });
     });
 }
@@ -80,11 +90,10 @@ function displayRooms() {
     document.getElementById('rooms').style.display = 'block';
 }
 
-function addToRoom() {
-    player = document.getElementById('nickInput').value;
-    document.getElementById('nick').style.display = 'none';
+function joinToRoom(roomId) {
+    currentRoomId = roomId;
     document.getElementById('game').style.display = 'block';
-    stompClient.send("/game/player-join", {}, JSON.stringify(`${player}`));
+    stompClient.send(`/game/player-join/${roomId}`, {}, JSON.stringify(player));
 }
 
 function startGame() {
@@ -93,5 +102,19 @@ function startGame() {
 }
 
 function createRoom(){
-    stompClient.send("/game/create-room", {}, JSON.stringify(`${player}`));
+    stompClient.send("/game/create-room", {}, JSON.stringify(player));
+}
+
+function readAllActualRooms() {
+    fetch(`/aim-battle/rooms`).then(response => response.json()).then(data => {
+        let roomListElem = document.getElementById('roomList');
+        data.forEach(room => {
+           let roomElem = document.createElement('li');
+           roomElem.dataset['roomId'] = room.id;
+           roomElem.classList.add('room');
+           roomElem.innerHTML = `<p>Pokoj ${room.id}. (${new Map(Object.entries(room.players)).size} / 4) </p> 
+           <button type="button" id="room${room.id} room-id="${room.id}" onclick="joinToRoom(${room.id})">DOŁĄCZ</button>`;
+           roomListElem.appendChild(roomElem);
+        });
+    });
 }

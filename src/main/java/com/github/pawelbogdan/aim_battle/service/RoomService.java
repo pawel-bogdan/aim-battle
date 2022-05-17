@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RoomService {
@@ -15,5 +16,13 @@ public class RoomService {
         Room newRoom = new Room(host);
         roomList.add(newRoom);
         return newRoom;
+    }
+
+    public List<Room> findAll() {
+        return roomList;
+    }
+
+    public Optional<Room> findById(int id) {
+        return roomList.stream().filter(room -> room.getId() == id).findFirst();
     }
 }

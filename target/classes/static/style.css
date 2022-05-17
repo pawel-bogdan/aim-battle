@@ -59,12 +59,10 @@
     transform: translate(-50%, -50%);
 }
 
-#queue {
-    position: absolute;
-    display: inline-block;
-    width: 20vw;
-    height: 30vh;
-    left: calc(50% + 320px);
-    top: calc(50% - 180px);
+.room {
+    background-color: #fff;
+}
+
+#actualRoom {
     background-color: #fff;
 }

@@ -1,5 +1,6 @@
 package com.github.pawelbogdan.aim_battle.model;
 
+@SuppressWarnings("unused") // jackson ...
 public class Player {
     private String nick;
     private int points;
