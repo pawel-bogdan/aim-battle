@@ -24,8 +24,20 @@
     height: 100%;
 }
 
-#gamePanel:hover, .target:hover {
-    cursor: url("images/crosshair_40x40.png") 20 20,  auto;
+.greenPlayer{
+    cursor: url("images/crosshair_green.png") 20 20, auto;
+}
+
+.redPlayer:hover{
+    cursor: url("images/crosshair_red.png") 20 20, auto;
+}
+
+.bluePlayer:hover{
+    cursor: url("images/crosshair_blue.png") 20 20, auto;
+}
+
+.yellowPlayer:hover{
+    cursor: url("images/crosshair_yellow.png") 20 20, auto;
 }
 
 .target {
@@ -65,4 +77,11 @@
 
 #actualRoom {
     background-color: #fff;
+    display: inline-block;
+    position: absolute;
+    left: calc(50% + 320px);
+    top: calc(50% - 180px);
+    width: 320px;
+    height: 360px;
+    margin-left: 1vw;
 }
