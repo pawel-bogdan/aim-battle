@@ -2,15 +2,23 @@ package com.github.pawelbogdan.aim_battle.service;
 
 import com.github.pawelbogdan.aim_battle.model.Player;
 import com.github.pawelbogdan.aim_battle.model.Room;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RoomService {
+    private final GameService gameService;
+
     public static List<Room> roomList = new ArrayList<>();
+
+    public RoomService(GameService gameService) {
+        this.gameService = gameService;
+    }
 
     public Room createRoom(Player host) {
         Room newRoom = new Room(host);
@@ -19,7 +27,7 @@ public class RoomService {
     }
 
     public List<Room> findAll() {
-        return roomList;
+        return roomList.stream().filter(room -> !(gameService.getIdsSet().contains(room.getId()))).collect(Collectors.toList());
     }
 
     public Optional<Room> findById(int id) {

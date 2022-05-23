@@ -47,4 +47,10 @@ public class RoomController {
     public Room createRoom(Player player){
         return roomService.createRoom(player);
     }
+
+    @MessageMapping("/disable-room/{roomId}")
+    @SendTo("/rooms/disabled-room")
+    public int disableRoom(@DestinationVariable int roomId){
+        return roomId;
+    }
 }

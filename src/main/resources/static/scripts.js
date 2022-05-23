@@ -16,6 +16,10 @@ yellowCrosshair.classList.add('crosshair');
 
 let audio = new Audio('audio/shot.mp3');
 
+let [seconds, minutes] = [60, 0];
+let timerRef = document.getElementById("clock");
+let time = null;
+
 document.getElementById('submitPlayer').onclick = displayRooms;
 document.getElementById('createRoom').onclick = createRoom;
 document.getElementById('startGame').onclick = startGame;
@@ -48,9 +52,9 @@ function connect() {
     stompClient = Stomp.over(socket);
     stompClient.connect({}, function (frame) {
         stompClient.subscribe('/rooms/player-joined', function (room) {
-            document.getElementById('listOfPlayers').innerHTML = "";
             let roomObj = JSON.parse(room.body);
             if (roomObj.id == currentRoomId) {
+                document.getElementById('listOfPlayers').innerHTML = "";
                 let playersMap = new Map(Object.entries(roomObj.players));
 
                 const crosshairs = document.querySelectorAll('.crosshair');
@@ -60,11 +64,10 @@ function connect() {
 
                 for (const [key, value] of playersMap.entries()) {
                     let playerElem = document.createElement('li')
-                    playerElem.innerHTML = `${key} ${value.nick} <span id="${value.nick}Points">${value.points}</span>`;
+                    playerElem.innerHTML = `${key} ${value.nick} <span id="${value.nick}Points">0</span>`;
                     document.getElementById('listOfPlayers').appendChild(playerElem);
-                    console.log("powinien byc", currentColor);
+
                     if (currentColor !== key.toLowerCase()) {
-                        console.log(key.toLowerCase());
                         if (key.toLowerCase() === 'green') {
                             document.getElementById('gamePanelWrapper').appendChild(greenCrosshair);
                         }
@@ -91,6 +94,7 @@ function connect() {
         stompClient.subscribe('/rooms/created-rooms', function (room) {
             let roomElem = document.createElement('li');
             let roomObj = JSON.parse(room.body);
+
             if (roomObj.host.nick === player) {
                 currentRoomId = roomObj.id;
                 currentGameId = roomObj.id;
@@ -98,16 +102,25 @@ function connect() {
                 document.getElementById('rooms').style.display = 'none';
                 document.getElementById('game').style.display = 'block';
             }
+            roomElem.dataset['roomId'] = roomObj.id;
+            roomElem.id=`roomList${roomObj.id}`;
+            roomElem.classList.add('room');
             roomElem.innerHTML = `<p>Pokoj ${roomObj.id}. (${new Map(Object.entries(roomObj.players)).size} / 4) </p> 
            <button type="button" id="room${roomObj.id}" room-id="${roomObj.id}" onclick="joinToRoom(${roomObj.id})">DOŁĄCZ</button>`;
             document.getElementById('roomList').appendChild(roomElem);
-
-            let playersMap = new Map(Object.entries(roomObj.players));
-            for (const [key, value] of playersMap.entries()) {
-                let playerElem = document.createElement('li')
-                playerElem.innerHTML = `${key} ${value.nick}`;
-                document.getElementById('listOfPlayers').appendChild(playerElem);
+            if (currentRoomId === roomObj.id) {
+                let playersMap = new Map(Object.entries(roomObj.players));
+                for (const [key, value] of playersMap.entries()) {
+                    let playerElem = document.createElement('li')
+                    playerElem.innerHTML = `${key} ${value.nick} <span id="${value.nick}Points">0</span>`;
+                    document.getElementById('listOfPlayers').appendChild(playerElem);
+                }
             }
+        });
+
+        stompClient.subscribe('/rooms/disabled-room', function (roomId) {
+            let roomNr = JSON.parse(roomId.body);
+            document.getElementById(`roomList${roomNr}`).remove();
         });
 
     });
@@ -117,12 +130,16 @@ function removeTarget(evn) {
     //let audio = new Audio('audio/shot.mp3');
     audio.play();
     stompClient.send(`/game/remove-target/game${currentGameId}`, {}, evn.target.id);
-    stompClient.send(`/game/points/game${currentGameId}`, {}, "RED");
     addTarget();
+    refreshPoints();
 }
 
 function addTarget() {
     stompClient.send(`/game/add-target/game${currentGameId}`, {}, 5);
+}
+
+function refreshPoints() {
+    stompClient.send(`/game/points/game${currentGameId}`, {}, JSON.stringify(currentColor));
 }
 
 function updateMousePosition(evn) {
@@ -130,16 +147,16 @@ function updateMousePosition(evn) {
         JSON.stringify({player: `${player}`, color: currentColor, xLocation: evn.offsetX, yLocation: evn.offsetY}));
 }
 
-function joinToRoom(roomId) {
+async function joinToRoom(roomId) {
     currentRoomId = roomId;
     currentGameId = roomId;
     let playersMap = null;
     document.getElementById('rooms').style.display = 'none';
     document.getElementById('game').style.display = 'block';
 
-    fetch(`/aim-battle/rooms/${roomId}`).then(response => response.json()).then(data => {
+    await fetch(`/aim-battle/rooms/${roomId}`).then(response => response.json()).then(data => {
         playersMap = new Map(Object.entries(data.players));
-        currentColor = colors.get(playersMap.size);
+        currentColor = colors.get(playersMap.size + 1);
         document.getElementById("gamePanel").classList.add(`${currentColor}Player`);
     });
     stompClient.send(`/game/player-join/${roomId}`, {}, JSON.stringify(player));
@@ -151,12 +168,43 @@ function startGame() {
     document.getElementById('startGame').style.display = 'none';
     //  /game${gameId}/start
     stompClient.send(`/game/game-start/${currentGameId}`);
+    stompClient.send(`/game/disable-room/${currentGameId}`);
     setTimeout(addTarget, 2000);
+    time = setInterval(displayTimer, 1000);
+}
+
+function finishGame() {
+
+}
+
+function displayTimer() {
+
+    seconds -= 1;
+
+    if (seconds == 0 && minutes == 0) {
+        timerRef.innerHTML = `00 : 00`;
+        clearInterval(time);
+        finishGame();
+    } else {
+
+        if (seconds == 60) {
+            minutes--;
+        }
+        if (seconds == 0) {
+            seconds = 59;
+        }
+
+        let m = minutes < 10 ? "0" + minutes : minutes;
+        let s = seconds < 10 ? "0" + seconds : seconds;
+
+        timerRef.innerHTML = `${m} : ${s}`;
+    }
 }
 
 function connectToGame() {
+
     stompClient.subscribe(`/targets/removed-target/game${currentGameId}`, function (target) {
-            document.getElementById(`${target.body}`).remove();
+        document.getElementById(`${target.body}`).remove();
     });
 
     stompClient.subscribe(`/targets/added-target/game${currentGameId}`, function (target) {
@@ -193,9 +241,13 @@ function connectToGame() {
         }
     });
 
-    stompClient.subscribe(`/points/update/game${currentGameId}`, function (player) {
-        let playerObj = JSON.parse(player.body);
-        document.getElementById(`${playerObj.nick}Points`).textContent = playerObj.points;
+    stompClient.subscribe(`/points/update/game${currentGameId}`, function (pointsMap) {
+        let currentsPointsMap = new Map(Object.entries(JSON.parse(pointsMap.body)));
+
+        for (const [key, value] of currentsPointsMap.entries()) {
+            document.getElementById(`${key}Points`).textContent = value;
+        }
+
     });
 }
 
@@ -213,6 +265,7 @@ function readAllActualRooms() {
         data.forEach(room => {
             let roomElem = document.createElement('li');
             roomElem.dataset['roomId'] = room.id;
+            roomElem.id=`roomList${room.id}`;
             roomElem.classList.add('room');
             roomElem.innerHTML = `<p>Pokoj ${room.id}. (${new Map(Object.entries(room.players)).size} / 4) </p> 
            <button type="button" id="room${room.id}" room-id="${room.id}" onclick="joinToRoom(${room.id})">DOŁĄCZ</button>`;

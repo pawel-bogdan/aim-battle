@@ -21,11 +21,16 @@ public class PointController {
 
     @MessageMapping("/points/game{gameId}")
     @SendTo("/points/update/game{gameId}")
-    public HashMap<Player, Integer> updatePoints(@DestinationVariable int gameId, Color color) {
+    public HashMap<String, Integer> updatePoints(@DestinationVariable int gameId, Color color) {
         var game = gameService.findById(gameId).get();
         var player = game.getPlayers().get(color);
         var pointsBeforeIncrementing = game.getPoints().get(player);
         game.getPoints().replace(player, pointsBeforeIncrementing + 10);
-        return game.getPoints();
+        var map = game.getPoints();
+        HashMap<String, Integer> pointsMap = new HashMap<>();
+        for (Player p: map.keySet()) {
+            pointsMap.put(p.getNick(), map.get(p));
+        }
+        return pointsMap;
     }
 }
