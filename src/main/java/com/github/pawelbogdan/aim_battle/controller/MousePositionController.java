@@ -8,8 +8,8 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class MousePositionController {
 
-    @MessageMapping("/mouse-position")
-    @SendTo("/mouse-position/update")
+    @MessageMapping("/mouse-position/game{gameId}")
+    @SendTo("/mouse-position/update/game{gameId}")
     public MousePosition updatePosition(MousePosition mousePosition) {
         return mousePosition;
     }

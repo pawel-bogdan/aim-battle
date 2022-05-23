@@ -18,7 +18,6 @@ import java.util.Optional;
 @RestController
 public class RoomController {
 
-    //private static Room mock = new Room(new Player("player1"));
     private RoomService roomService;
 
     public RoomController(RoomService roomService) {
@@ -27,7 +26,6 @@ public class RoomController {
 
     @GetMapping("/aim-battle/rooms")
     public List<Room> readAllRooms() {
-        System.out.println(roomService.findAll());
         return roomService.findAll();
     }
 

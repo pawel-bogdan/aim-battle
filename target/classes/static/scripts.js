@@ -24,6 +24,7 @@ let currentColor = null;
 let currentRoomId = null;
 let stompClient = null;
 let player = null;
+let currentGameId = null;
 
 let colors = new Map([
     [1, 'green'],
@@ -36,49 +37,16 @@ connect();
 document.getElementById('gamePanel').onmousemove = updateMousePosition;
 readAllActualRooms();
 
+function displayRooms() {
+    player = document.getElementById('nickInput').value;
+    document.getElementById('nick').style.display = 'none';
+    document.getElementById('rooms').style.display = 'block';
+}
+
 function connect() {
     let socket = new SockJS("/aim-battle");
     stompClient = Stomp.over(socket);
     stompClient.connect({}, function (frame) {
-
-        stompClient.subscribe('/targets/removed-target', function (target) {
-            document.getElementById(`${target.body}`).remove();
-        });
-
-        stompClient.subscribe('/targets/added-target', function (target) {
-            let targetElem = document.createElement('div');
-            targetElem.id = `target${JSON.parse(target.body).id}`;
-            targetElem.classList.add('target');
-            targetElem.classList.add(`${currentColor}Player`);
-            targetElem.style.left = `${JSON.parse(target.body).xLocation}%`;
-            targetElem.style.top = `${JSON.parse(target.body).yLocation}%`;
-            targetElem.addEventListener('click', removeTarget);
-            document.getElementById('gamePanelWrapper').appendChild(targetElem);
-        });
-
-        stompClient.subscribe('/mouse-position/update', function (mousePosition) {
-            let obj = JSON.parse(mousePosition.body);
-            if (obj.player !== player) {
-                if (obj.color === 'green') {
-                    greenCrosshair.style.left = `${obj.xLocation}px`;
-                    greenCrosshair.style.top = `${obj.yLocation}px`;
-                }
-                if (obj.color === 'blue') {
-                    blueCrosshair.style.left = `${obj.xLocation}px`;
-                    blueCrosshair.style.top = `${obj.yLocation}px`;
-                }
-                if (obj.color === 'red') {
-                    redCrosshair.style.left = `${obj.xLocation}px`;
-                    redCrosshair.style.top = `${obj.yLocation}px`;
-                }
-                if (obj.color === 'yellow') {
-                    yellowCrosshair.style.left = `${obj.xLocation}px`;
-                    yellowCrosshair.style.top = `${obj.yLocation}px`;
-                }
-
-            }
-        });
-
         stompClient.subscribe('/rooms/player-joined', function (room) {
             document.getElementById('listOfPlayers').innerHTML = "";
             let roomObj = JSON.parse(room.body);
@@ -92,10 +60,11 @@ function connect() {
 
                 for (const [key, value] of playersMap.entries()) {
                     let playerElem = document.createElement('li')
-                    playerElem.innerHTML = `${key} ${value.nick}`;
+                    playerElem.innerHTML = `${key} ${value.nick} <span id="${value.nick}Points">${value.points}</span>`;
                     document.getElementById('listOfPlayers').appendChild(playerElem);
-
+                    console.log("powinien byc", currentColor);
                     if (currentColor !== key.toLowerCase()) {
+                        console.log(key.toLowerCase());
                         if (key.toLowerCase() === 'green') {
                             document.getElementById('gamePanelWrapper').appendChild(greenCrosshair);
                         }
@@ -115,10 +84,7 @@ function connect() {
             if (new Map(Object.entries(roomObj.players)).size === 4) {
                 document.getElementById(`room${roomObj.id}`).disabled = true;
             }
-
             readAllActualRooms();
-
-
         });
 
 
@@ -127,6 +93,8 @@ function connect() {
             let roomObj = JSON.parse(room.body);
             if (roomObj.host.nick === player) {
                 currentRoomId = roomObj.id;
+                currentGameId = roomObj.id;
+                stompClient.subscribe(`/games/game-start/${currentGameId}`, connectToGame);
                 document.getElementById('rooms').style.display = 'none';
                 document.getElementById('game').style.display = 'block';
             }
@@ -141,47 +109,94 @@ function connect() {
                 document.getElementById('listOfPlayers').appendChild(playerElem);
             }
         });
+
     });
 }
 
 function removeTarget(evn) {
+    //let audio = new Audio('audio/shot.mp3');
     audio.play();
-    stompClient.send("/game/remove-target", {}, evn.target.id);
+    stompClient.send(`/game/remove-target/game${currentGameId}`, {}, evn.target.id);
+    stompClient.send(`/game/points/game${currentGameId}`, {}, "RED");
     addTarget();
 }
 
 function addTarget() {
-    stompClient.send("/game/add-target", {}, 5);
+    stompClient.send(`/game/add-target/game${currentGameId}`, {}, 5);
 }
 
 function updateMousePosition(evn) {
-    stompClient.send("/game/mouse-position", {},
+    stompClient.send(`/game/mouse-position/game${currentGameId}`, {},
         JSON.stringify({player: `${player}`, color: currentColor, xLocation: evn.offsetX, yLocation: evn.offsetY}));
-}
-
-function displayRooms() {
-    player = document.getElementById('nickInput').value;
-    document.getElementById('nick').style.display = 'none';
-    document.getElementById('rooms').style.display = 'block';
 }
 
 function joinToRoom(roomId) {
     currentRoomId = roomId;
+    currentGameId = roomId;
+    let playersMap = null;
     document.getElementById('rooms').style.display = 'none';
     document.getElementById('game').style.display = 'block';
 
     fetch(`/aim-battle/rooms/${roomId}`).then(response => response.json()).then(data => {
-        let playersMap = new Map(Object.entries(data.players));
-        currentColor = colors.get(playersMap.size+1);
+        playersMap = new Map(Object.entries(data.players));
+        currentColor = colors.get(playersMap.size);
         document.getElementById("gamePanel").classList.add(`${currentColor}Player`);
     });
-
     stompClient.send(`/game/player-join/${roomId}`, {}, JSON.stringify(player));
+    stompClient.subscribe(`/games/game-start/${currentGameId}`, connectToGame);
 }
+
 
 function startGame() {
     document.getElementById('startGame').style.display = 'none';
+    //  /game${gameId}/start
+    stompClient.send(`/game/game-start/${currentGameId}`);
     setTimeout(addTarget, 2000);
+}
+
+function connectToGame() {
+    stompClient.subscribe(`/targets/removed-target/game${currentGameId}`, function (target) {
+            document.getElementById(`${target.body}`).remove();
+    });
+
+    stompClient.subscribe(`/targets/added-target/game${currentGameId}`, function (target) {
+        let targetElem = document.createElement('div');
+        targetElem.id = `target${JSON.parse(target.body).id}`;
+        targetElem.classList.add('target');
+        targetElem.classList.add(`${currentColor}Player`);
+        targetElem.style.left = `${JSON.parse(target.body).xLocation}%`;
+        targetElem.style.top = `${JSON.parse(target.body).yLocation}%`;
+        targetElem.addEventListener('click', removeTarget);
+        document.getElementById('gamePanelWrapper').appendChild(targetElem);
+    });
+
+    stompClient.subscribe(`/mouse-position/update/game${currentGameId}`, function (mousePosition) {
+        let obj = JSON.parse(mousePosition.body);
+        if (obj.player !== player) {
+            if (obj.color === 'green') {
+                greenCrosshair.style.left = `${obj.xLocation}px`;
+                greenCrosshair.style.top = `${obj.yLocation}px`;
+            }
+            if (obj.color === 'blue') {
+                blueCrosshair.style.left = `${obj.xLocation}px`;
+                blueCrosshair.style.top = `${obj.yLocation}px`;
+            }
+            if (obj.color === 'red') {
+                redCrosshair.style.left = `${obj.xLocation}px`;
+                redCrosshair.style.top = `${obj.yLocation}px`;
+            }
+            if (obj.color === 'yellow') {
+                yellowCrosshair.style.left = `${obj.xLocation}px`;
+                yellowCrosshair.style.top = `${obj.yLocation}px`;
+            }
+
+        }
+    });
+
+    stompClient.subscribe(`/points/update/game${currentGameId}`, function (player) {
+        let playerObj = JSON.parse(player.body);
+        document.getElementById(`${playerObj.nick}Points`).textContent = playerObj.points;
+    });
 }
 
 function createRoom() {
