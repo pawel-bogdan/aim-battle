@@ -1,12 +1,5 @@
-#game{
+#game {
     display: none;
-}
-
-#rooms{
-    display: none;
-    width: 30vw;
-    height: 70vh;
-    background-color: rgba(84, 61, 171, 0.8);
 }
 
 #gamePanelWrapper {
@@ -24,20 +17,15 @@
     height: 100%;
 }
 
-.greenPlayer{
-    cursor: url("images/crosshair_green.png") 20 20, auto;
-}
-
-.redPlayer:hover{
-    cursor: url("images/crosshair_red.png") 20 20, auto;
-}
-
-.bluePlayer:hover{
-    cursor: url("images/crosshair_blue.png") 20 20, auto;
-}
-
-.yellowPlayer:hover{
-    cursor: url("images/crosshair_yellow.png") 20 20, auto;
+#actualRoom {
+    background-color: #fff;
+    display: inline-block;
+    position: absolute;
+    left: calc(50% + 320px);
+    top: calc(50% - 180px);
+    width: 320px;
+    height: 360px;
+    margin-left: 1vw;
 }
 
 .target {
@@ -51,6 +39,7 @@
     animation-direction: alternate-reverse;
     animation-timing-function: linear;
     transform: scale(1);
+    z-index: 5;
 }
 
 @keyframes grow {
@@ -63,25 +52,42 @@
     100% {transform: scale(1.5);}
 }
 
-.crosshair {
+.opponentCrosshair {
     position: absolute;
+    z-index: 1;
     opacity: 0.3;
     width: 40px;
     height: 40px;
     transform: translate(-50%, -50%);
 }
 
-.room {
-    background-color: #fff;
+.greenPlayer:hover {
+    cursor: url("../images/crosshair_green.png") 20 20, auto;
 }
 
-#actualRoom {
-    background-color: #fff;
-    display: inline-block;
+.redPlayer:hover {
+    cursor: url("../images/crosshair_red.png") 20 20, auto;
+}
+
+.bluePlayer:hover {
+    cursor: url("../images/crosshair_blue.png") 20 20, auto;
+}
+
+.yellowPlayer:hover {
+    cursor: url("../images/crosshair_yellow.png") 20 20, auto;
+}
+
+#scoreBoard{
+    width: 30vw;
+    height: 50vh;
+    background-color: #ff0000;
     position: absolute;
-    left: calc(50% + 320px);
-    top: calc(50% - 180px);
-    width: 320px;
-    height: 360px;
-    margin-left: 1vw;
+    left: 30%;
+    top: 25%;
+    z-index: 10;
+}
+
+.countdown{
+    background-color: black;
+    opacity: 0.3;
 }

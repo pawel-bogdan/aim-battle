@@ -19,6 +19,12 @@ public class GameService {
         activeGames.add(game);
     }
 
+    public Game removeGame(int id) {
+        var result = activeGames.stream().filter(game -> game.getId() == id).findFirst().get();
+        activeGames.remove(result);
+        return result;
+    }
+
     public List<Integer> getIdsSet(){
         List<Integer> idsSet = new ArrayList<>();
         for (Game g: activeGames){

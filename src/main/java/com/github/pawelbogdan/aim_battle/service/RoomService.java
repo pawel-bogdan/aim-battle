@@ -26,6 +26,12 @@ public class RoomService {
         return newRoom;
     }
 
+    public Room removeRoom(int id) {
+        var result = roomList.stream().filter(room -> room.getId() == id).findFirst().get();
+        roomList.remove(result);
+        return result;
+    }
+
     public List<Room> findAll() {
         return roomList.stream().filter(room -> !(gameService.getIdsSet().contains(room.getId()))).collect(Collectors.toList());
     }

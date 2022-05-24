@@ -1,44 +1,40 @@
-let greenCrosshair = document.createElement('img');
-greenCrosshair.src = 'images/crosshair_green.png';
-greenCrosshair.classList.add('crosshair');
-
-let blueCrosshair = document.createElement('img');
-blueCrosshair.src = 'images/crosshair_blue.png';
-blueCrosshair.classList.add('crosshair');
-
-let redCrosshair = document.createElement('img');
-redCrosshair.src = 'images/crosshair_red.png';
-redCrosshair.classList.add('crosshair');
-
-let yellowCrosshair = document.createElement('img');
-yellowCrosshair.src = 'images/crosshair_yellow.png';
-yellowCrosshair.classList.add('crosshair');
-
-let audio = new Audio('audio/shot.mp3');
-
-let [seconds, minutes] = [60, 0];
+const SUBMIT_PLAYER_BTN = document.getElementById('submitPlayer');
+const CREATE_ROOM_BTN = document.getElementById('createRoom');
+const START_GAME_BTN = document.getElementById('startGameBtn');
+const GAME_PANEL = document.getElementById('gamePanel');
+let greenCrosshair;
+let blueCrosshair;
+let redCrosshair;
+let yellowCrosshair;
+initCrosshairs();
+let secondsLeft = 10;
+let [seconds, minutes] = [20, 0];
 let timerRef = document.getElementById("clock");
 let time = null;
-
-document.getElementById('submitPlayer').onclick = displayRooms;
-document.getElementById('createRoom').onclick = createRoom;
-document.getElementById('startGame').onclick = startGame;
-
+let countdown = null;
 let currentColor = null;
 let currentRoomId = null;
 let stompClient = null;
 let player = null;
 let currentGameId = null;
-
 let colors = new Map([
     [1, 'green'],
     [2, 'blue'],
     [3, 'red'],
     [4, 'yellow']
 ]);
+let gameStartSubscription;
+let removeTargetSubscription;
+let addTargetSubscription;
+let mpUpdateSubscription;
+let pointsUpdateSubscription;
 
-connect();
-document.getElementById('gamePanel').onmousemove = updateMousePosition;
+SUBMIT_PLAYER_BTN.onclick = displayRooms;
+CREATE_ROOM_BTN.onclick = createRoom;
+START_GAME_BTN.onclick = startGame;
+GAME_PANEL.onmousemove = updateMousePosition;
+
+connectToServer();
 readAllActualRooms();
 
 function displayRooms() {
@@ -47,25 +43,63 @@ function displayRooms() {
     document.getElementById('rooms').style.display = 'block';
 }
 
-function connect() {
-    let socket = new SockJS("/aim-battle");
+function createRoom() {
+    stompClient.send("/game/create-room", {}, JSON.stringify(player));
+    currentColor = 'green';
+    document.getElementById("gamePanel").classList.add(`greenPlayer`);
+    document.getElementById('startGameBtn').style.display = 'block';
+}
+
+function startGame() {
+    document.getElementById('startGameBtn').style.display = 'none';
+    stompClient.send(`/game/game-start/${currentGameId}`);
+    stompClient.send(`/game/disable-room/${currentGameId}`);
+}
+
+function countDown(){
+    const countDownDiv = document.createElement('div');
+    countDownDiv.id=`countdowndiv${currentRoomId}`;
+    countDownDiv.classList.add('countdown');
+    countDownDiv.innerHTML=`<span id="countdown${currentRoomId}">10</span>`
+
+    secondsLeft = 10;
+    document.getElementById('gamePanel').appendChild(countDownDiv);
+    countdown = setInterval(countdownTimer, 1000)
+}
+
+function countdownTimer() {
+    secondsLeft--;
+    if (seconds == 0) {
+        clearInterval(countdown);
+        document.getElementById(`countdowndiv${currentRoomId}`).remove();
+        addTarget();
+    } else {
+        document.getElementById(`countdown${currentRoomId}`).innerHTML = `${secondsLeft}`;
+    }
+}
+
+function updateMousePosition(evn) {
+    stompClient.send(`/game/mouse-position/game${currentGameId}`, {},
+        JSON.stringify({player: `${player}`, color: currentColor, xLocation: evn.offsetX, yLocation: evn.offsetY}));
+}
+
+function connectToServer() {
+    let socket = new SockJS('/aim-battle');
     stompClient = Stomp.over(socket);
-    stompClient.connect({}, function (frame) {
+    stompClient.connect({}, function () {
         stompClient.subscribe('/rooms/player-joined', function (room) {
             let roomObj = JSON.parse(room.body);
             if (roomObj.id == currentRoomId) {
-                document.getElementById('listOfPlayers').innerHTML = "";
+                document.getElementById('playersInRoom').innerHTML = "";
                 let playersMap = new Map(Object.entries(roomObj.players));
-
-                const crosshairs = document.querySelectorAll('.crosshair');
+                const crosshairs = document.querySelectorAll('.opponentCrosshair');
                 crosshairs.forEach(cross => {
                     cross.remove();
                 });
-
                 for (const [key, value] of playersMap.entries()) {
                     let playerElem = document.createElement('li')
                     playerElem.innerHTML = `${key} ${value.nick} <span id="${value.nick}Points">0</span>`;
-                    document.getElementById('listOfPlayers').appendChild(playerElem);
+                    document.getElementById('playersInRoom').appendChild(playerElem);
 
                     if (currentColor !== key.toLowerCase()) {
                         if (key.toLowerCase() === 'green') {
@@ -87,7 +121,7 @@ function connect() {
             if (new Map(Object.entries(roomObj.players)).size === 4) {
                 document.getElementById(`room${roomObj.id}`).disabled = true;
             }
-            readAllActualRooms();
+            readAllActualRooms(); // to nie ma sensu
         });
 
 
@@ -98,12 +132,12 @@ function connect() {
             if (roomObj.host.nick === player) {
                 currentRoomId = roomObj.id;
                 currentGameId = roomObj.id;
-                stompClient.subscribe(`/games/game-start/${currentGameId}`, connectToGame);
+                gameStartSubscription = stompClient.subscribe(`/games/game-start/${currentGameId}`, connectToGame);
                 document.getElementById('rooms').style.display = 'none';
                 document.getElementById('game').style.display = 'block';
             }
             roomElem.dataset['roomId'] = roomObj.id;
-            roomElem.id=`roomList${roomObj.id}`;
+            roomElem.id = `roomList${roomObj.id}`;
             roomElem.classList.add('room');
             roomElem.innerHTML = `<p>Pokoj ${roomObj.id}. (${new Map(Object.entries(roomObj.players)).size} / 4) </p> 
            <button type="button" id="room${roomObj.id}" room-id="${roomObj.id}" onclick="joinToRoom(${roomObj.id})">DOŁĄCZ</button>`;
@@ -113,7 +147,7 @@ function connect() {
                 for (const [key, value] of playersMap.entries()) {
                     let playerElem = document.createElement('li')
                     playerElem.innerHTML = `${key} ${value.nick} <span id="${value.nick}Points">0</span>`;
-                    document.getElementById('listOfPlayers').appendChild(playerElem);
+                    document.getElementById('playersInRoom').appendChild(playerElem);
                 }
             }
         });
@@ -127,7 +161,7 @@ function connect() {
 }
 
 function removeTarget(evn) {
-    //let audio = new Audio('audio/shot.mp3');
+    let audio = new Audio('audio/shot.mp3');
     audio.play();
     stompClient.send(`/game/remove-target/game${currentGameId}`, {}, evn.target.id);
     addTarget();
@@ -140,11 +174,6 @@ function addTarget() {
 
 function refreshPoints() {
     stompClient.send(`/game/points/game${currentGameId}`, {}, JSON.stringify(currentColor));
-}
-
-function updateMousePosition(evn) {
-    stompClient.send(`/game/mouse-position/game${currentGameId}`, {},
-        JSON.stringify({player: `${player}`, color: currentColor, xLocation: evn.offsetX, yLocation: evn.offsetY}));
 }
 
 async function joinToRoom(roomId) {
@@ -160,54 +189,103 @@ async function joinToRoom(roomId) {
         document.getElementById("gamePanel").classList.add(`${currentColor}Player`);
     });
     stompClient.send(`/game/player-join/${roomId}`, {}, JSON.stringify(player));
-    stompClient.subscribe(`/games/game-start/${currentGameId}`, connectToGame);
+    gameStartSubscription = stompClient.subscribe(`/games/game-start/${currentGameId}`, connectToGame);
 }
 
+async function finishGame() {
+    document.querySelectorAll('.opponentCrosshair').forEach(cross => cross.remove());
+    document.querySelectorAll('.target').forEach(t => t.remove());
+    console.log(currentColor, gameStartSubscription, removeTargetSubscription, addTargetSubscription, mpUpdateSubscription, pointsUpdateSubscription)
+    gameStartSubscription.unsubscribe();
+    removeTargetSubscription.unsubscribe();
+    addTargetSubscription.unsubscribe();
+    mpUpdateSubscription.unsubscribe();
+    pointsUpdateSubscription.unsubscribe();
+    const scoreBoard = document.getElementById("score");
+    document.getElementById("scoreBoard").style.display = 'block';
+    await fetch(`/aim-battle/games/${currentGameId}/score`).then(response => response.json())
+        .then(data => {
+            console.log("Dane ", data);
 
-function startGame() {
-    document.getElementById('startGame').style.display = 'none';
-    //  /game${gameId}/start
-    stompClient.send(`/game/game-start/${currentGameId}`);
-    stompClient.send(`/game/disable-room/${currentGameId}`);
-    setTimeout(addTarget, 2000);
-    time = setInterval(displayTimer, 1000);
+            data.forEach(pair => {
+                let playerPosition = document.createElement('li');
+                playerPosition.innerHTML = `${pair.value0.nick}        <span>${pair.value1}</span>`
+                scoreBoard.appendChild(playerPosition);
+            })
+
+        });
+
+
+    setTimeout(deleteGame, 10000);
 }
 
-function finishGame() {
+async function deleteGame() {
+    if (currentColor === 'green') {
+        console.log("wysylanie reqs");
+        await fetch(`/aim-battle/games/${currentGameId}`, {method: 'DELETE'}).then(response => response.json())
+            .then(data => {
+                console.log(data);
+            });
 
+        await fetch(`/aim-battle/rooms/${currentRoomId}`, {method: 'DELETE'}).then(response => response.json())
+            .then(data => {
+                console.log(data);
+            });
+    }
+    console.log("usuwam gre");
+    document.getElementById('score').innerHTML = "";
+    document.getElementById('playersInRoom').innerHTML = "";
+    document.getElementById('clock').innerHTML = '01 : 00';
+    document.getElementById('game').style.display = 'none';
+    document.getElementById('scoreBoard').style.display = 'none';
+    document.getElementById('rooms').style.display = 'block';
+    [seconds, minutes] = [20, 0];
+    await readAllActualRooms();
 }
 
 function displayTimer() {
-
-    seconds -= 1;
-
+    seconds--;
     if (seconds == 0 && minutes == 0) {
         timerRef.innerHTML = `00 : 00`;
         clearInterval(time);
         finishGame();
     } else {
-
-        if (seconds == 60) {
+        if (seconds == 60)
             minutes--;
-        }
-        if (seconds == 0) {
+        if (seconds == 0)
             seconds = 59;
-        }
-
         let m = minutes < 10 ? "0" + minutes : minutes;
         let s = seconds < 10 ? "0" + seconds : seconds;
-
         timerRef.innerHTML = `${m} : ${s}`;
     }
 }
 
 function connectToGame() {
 
-    stompClient.subscribe(`/targets/removed-target/game${currentGameId}`, function (target) {
+    countDown;
+
+    // to jest potrzebne by po najechaniu na przeciwnika nie pojawial sie zwykly kursor
+    greenCrosshair.removeAttribute('class');
+    greenCrosshair.classList.add(`opponentCrosshair`);
+    greenCrosshair.classList.add(`${currentColor}Player`);
+
+    blueCrosshair.removeAttribute('class');
+    blueCrosshair.classList.add(`opponentCrosshair`);
+    blueCrosshair.classList.add(`${currentColor}Player`);
+
+    redCrosshair.removeAttribute('class');
+    redCrosshair.classList.add(`opponentCrosshair`);
+    redCrosshair.classList.add(`${currentColor}Player`);
+
+    yellowCrosshair.removeAttribute('class');
+    yellowCrosshair.classList.add(`opponentCrosshair`);
+    yellowCrosshair.classList.add(`${currentColor}Player`);
+
+    removeTargetSubscription = stompClient.subscribe(`/targets/removed-target/game${currentGameId}`, function (target) {
         document.getElementById(`${target.body}`).remove();
     });
 
-    stompClient.subscribe(`/targets/added-target/game${currentGameId}`, function (target) {
+    addTargetSubscription = stompClient.subscribe(`/targets/added-target/game${currentGameId}`, function (target) {
         let targetElem = document.createElement('div');
         targetElem.id = `target${JSON.parse(target.body).id}`;
         targetElem.classList.add('target');
@@ -218,22 +296,21 @@ function connectToGame() {
         document.getElementById('gamePanelWrapper').appendChild(targetElem);
     });
 
-    stompClient.subscribe(`/mouse-position/update/game${currentGameId}`, function (mousePosition) {
+    mpUpdateSubscription = stompClient.subscribe(`/mouse-position/update/game${currentGameId}`, function (mousePosition) {
         let obj = JSON.parse(mousePosition.body);
+
         if (obj.player !== player) {
+
             if (obj.color === 'green') {
                 greenCrosshair.style.left = `${obj.xLocation}px`;
                 greenCrosshair.style.top = `${obj.yLocation}px`;
-            }
-            if (obj.color === 'blue') {
+            } else if (obj.color === 'blue') {
                 blueCrosshair.style.left = `${obj.xLocation}px`;
                 blueCrosshair.style.top = `${obj.yLocation}px`;
-            }
-            if (obj.color === 'red') {
+            } else if (obj.color === 'red') {
                 redCrosshair.style.left = `${obj.xLocation}px`;
                 redCrosshair.style.top = `${obj.yLocation}px`;
-            }
-            if (obj.color === 'yellow') {
+            } else if (obj.color === 'yellow') {
                 yellowCrosshair.style.left = `${obj.xLocation}px`;
                 yellowCrosshair.style.top = `${obj.yLocation}px`;
             }
@@ -241,7 +318,7 @@ function connectToGame() {
         }
     });
 
-    stompClient.subscribe(`/points/update/game${currentGameId}`, function (pointsMap) {
+    pointsUpdateSubscription = stompClient.subscribe(`/points/update/game${currentGameId}`, function (pointsMap) {
         let currentsPointsMap = new Map(Object.entries(JSON.parse(pointsMap.body)));
 
         for (const [key, value] of currentsPointsMap.entries()) {
@@ -249,13 +326,7 @@ function connectToGame() {
         }
 
     });
-}
-
-function createRoom() {
-    stompClient.send("/game/create-room", {}, JSON.stringify(player));
-    currentColor = 'green';
-    document.getElementById("gamePanel").classList.add(`greenPlayer`);
-    document.getElementById('startGame').style.display = 'block';
+    time = setInterval(displayTimer, 1000);
 }
 
 function readAllActualRooms() {
@@ -265,7 +336,7 @@ function readAllActualRooms() {
         data.forEach(room => {
             let roomElem = document.createElement('li');
             roomElem.dataset['roomId'] = room.id;
-            roomElem.id=`roomList${room.id}`;
+            roomElem.id = `roomList${room.id}`;
             roomElem.classList.add('room');
             roomElem.innerHTML = `<p>Pokoj ${room.id}. (${new Map(Object.entries(room.players)).size} / 4) </p> 
            <button type="button" id="room${room.id}" room-id="${room.id}" onclick="joinToRoom(${room.id})">DOŁĄCZ</button>`;
@@ -275,4 +346,28 @@ function readAllActualRooms() {
             }
         });
     });
+}
+
+function initCrosshairs() {
+    greenCrosshair = document.createElement('img');
+    greenCrosshair.id = 'greenCrosshair';
+    greenCrosshair.src = 'images/crosshair_green.png';
+    greenCrosshair.classList.add('opponentCrosshair');
+
+    blueCrosshair = document.createElement('img');
+    blueCrosshair.id = 'blueCrosshair';
+    blueCrosshair.src = 'images/crosshair_blue.png';
+    blueCrosshair.classList.add('opponentCrosshair');
+
+
+    redCrosshair = document.createElement('img');
+    redCrosshair.id = 'redCrosshair';
+    redCrosshair.src = 'images/crosshair_red.png';
+    redCrosshair.classList.add('opponentCrosshair');
+
+    yellowCrosshair = document.createElement('img');
+    yellowCrosshair.id = 'yellowCrosshair';
+    yellowCrosshair.src = 'images/crosshair_yellow.png';
+    yellowCrosshair.classList.add('opponentCrosshair');
+
 }

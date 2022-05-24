@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Aim Battle</title>
-    <link href="index.css" rel="stylesheet">
-    <link href="style.css" rel="stylesheet">
+    <link href="styles/background.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles/in-gameView.css">
+    <link rel="stylesheet" href="styles/roomsView.css">
+    <link rel="stylesheet" href="styles/crosshair.css">
     <script src="/webjars/jquery/jquery.min.js"></script>
     <script src="/webjars/sockjs-client/sockjs.min.js"></script>
     <script src="/webjars/stomp-websocket/stomp.min.js"></script>
@@ -30,11 +32,18 @@
         </div>
 
         <div id="actualRoom">
-            <button type="button" id="startGame" style="display: none">START</button>
-            <ul id="listOfPlayers">
+            <button type="button" id="startGameBtn" style="display: none">START</button>
+            <ul id="playersInRoom">
 
             </ul>
             <div id="clock">01 : 00</div>
+        </div>
+
+        <div id="scoreBoard" style="display: none">
+            <span>TABELA WYNIKÓW</span>
+            <ul id="score">
+
+            </ul>
         </div>
     </div>
 

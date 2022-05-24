@@ -1,0 +1,19 @@
+#greenCrosshair {
+    left: 15%;
+    top: 15%;
+}
+
+#blueCrosshair {
+    left: 80%;
+    top: 15%;
+}
+
+#redCrosshair {
+    left: 15%;
+    top: 80%;
+}
+
+#yellowCrosshair {
+    left: 80%;
+    top: 80%;
+}

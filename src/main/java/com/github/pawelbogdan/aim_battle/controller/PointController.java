@@ -26,6 +26,7 @@ public class PointController {
         var player = game.getPlayers().get(color);
         var pointsBeforeIncrementing = game.getPoints().get(player);
         game.getPoints().replace(player, pointsBeforeIncrementing + 10);
+        // czy to jest konieczne ??
         var map = game.getPoints();
         HashMap<String, Integer> pointsMap = new HashMap<>();
         for (Player p: map.keySet()) {
