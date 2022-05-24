@@ -46,21 +46,23 @@ function displayRooms() {
 function createRoom() {
     stompClient.send("/game/create-room", {}, JSON.stringify(player));
     currentColor = 'green';
+    document.getElementById("gamePanel").removeAttribute('class');
     document.getElementById("gamePanel").classList.add(`greenPlayer`);
     document.getElementById('startGameBtn').style.display = 'block';
 }
 
-function startGame() {
+async function startGame() {
     document.getElementById('startGameBtn').style.display = 'none';
     stompClient.send(`/game/game-start/${currentGameId}`);
     stompClient.send(`/game/disable-room/${currentGameId}`);
+
 }
 
-function countDown(){
+function countDown() {
     const countDownDiv = document.createElement('div');
-    countDownDiv.id=`countdowndiv${currentRoomId}`;
+    countDownDiv.id = `countdowndiv${currentRoomId}`;
     countDownDiv.classList.add('countdown');
-    countDownDiv.innerHTML=`<span id="countdown${currentRoomId}">10</span>`
+    countDownDiv.innerHTML = `<span id="countdown${currentRoomId}">10</span>`
 
     secondsLeft = 10;
     document.getElementById('gamePanel').appendChild(countDownDiv);
@@ -69,12 +71,12 @@ function countDown(){
 
 function countdownTimer() {
     secondsLeft--;
-    if (seconds == 0) {
+    if (secondsLeft == 0) {
         clearInterval(countdown);
         document.getElementById(`countdowndiv${currentRoomId}`).remove();
-        addTarget();
+        connectToGame();
     } else {
-        document.getElementById(`countdown${currentRoomId}`).innerHTML = `${secondsLeft}`;
+        document.getElementById(`countdown${currentRoomId}`).textContent = `${secondsLeft}`;
     }
 }
 
@@ -132,7 +134,7 @@ function connectToServer() {
             if (roomObj.host.nick === player) {
                 currentRoomId = roomObj.id;
                 currentGameId = roomObj.id;
-                gameStartSubscription = stompClient.subscribe(`/games/game-start/${currentGameId}`, connectToGame);
+                gameStartSubscription = stompClient.subscribe(`/games/game-start/${currentGameId}`, countDown);
                 document.getElementById('rooms').style.display = 'none';
                 document.getElementById('game').style.display = 'block';
             }
@@ -186,10 +188,11 @@ async function joinToRoom(roomId) {
     await fetch(`/aim-battle/rooms/${roomId}`).then(response => response.json()).then(data => {
         playersMap = new Map(Object.entries(data.players));
         currentColor = colors.get(playersMap.size + 1);
+        document.getElementById("gamePanel").removeAttribute('class');
         document.getElementById("gamePanel").classList.add(`${currentColor}Player`);
     });
     stompClient.send(`/game/player-join/${roomId}`, {}, JSON.stringify(player));
-    gameStartSubscription = stompClient.subscribe(`/games/game-start/${currentGameId}`, connectToGame);
+    gameStartSubscription = stompClient.subscribe(`/games/game-start/${currentGameId}`, countDown);
 }
 
 async function finishGame() {
@@ -214,7 +217,6 @@ async function finishGame() {
             })
 
         });
-
 
     setTimeout(deleteGame, 10000);
 }
@@ -261,8 +263,6 @@ function displayTimer() {
 }
 
 function connectToGame() {
-
-    countDown;
 
     // to jest potrzebne by po najechaniu na przeciwnika nie pojawial sie zwykly kursor
     greenCrosshair.removeAttribute('class');
@@ -327,6 +327,9 @@ function connectToGame() {
 
     });
     time = setInterval(displayTimer, 1000);
+    if (currentColor == "green") {
+        addTarget();
+    }
 }
 
 function readAllActualRooms() {
