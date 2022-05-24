@@ -1,52 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-100">
 <head>
     <meta charset="UTF-8">
     <title>Aim Battle</title>
-    <link href="styles/background.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
     <link rel="stylesheet" href="styles/in-gameView.css">
     <link rel="stylesheet" href="styles/roomsView.css">
     <link rel="stylesheet" href="styles/crosshair.css">
+    <link rel="stylesheet" href="styles/cover.css">
+    <link rel="stylesheet" href="styles/login.css">
+    <link rel="stylesheet" href="styles/general.css">
     <script src="/webjars/jquery/jquery.min.js"></script>
     <script src="/webjars/sockjs-client/sockjs.min.js"></script>
     <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+
 </head>
-<body>
-    <div id="nick">
-        <p><label for="nickInput">Nick</label>
-            <input id="nickInput" type="text"></p>
-        <button id="submitPlayer">Submit</button>
-    </div>
+<body class="d-flex h-100 text-center text-white bg-dark">
+<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+    <header class="mb-auto">
+        <div>
+            <h1 class="float-md-start mb-0">Aim Battle</h1>
+        </div>
+    </header>
 
-    <div id="rooms">
-        <button type="button" id="createRoom">STWÓRZ NOWY POKÓJ</button>
-        <ul id="roomList">
+    <main class="px-3">
+        <div id="mainPageInfo">
+            <h1>Challange your friend!</h1>
+            <p class="lead">Compete with your friends, see which of you is the fastest and most accurate!</p>
+            <p class="lead">
+                <a id="login" href="#" class="btn btn-lg btn-secondary fw-bold border-white bg-white">Log in</a>
+            </p>
+        </div>
 
-        </ul>
-    </div>
+        <div id="nick">
+            <form>
+                <div class="mb-3">
+                    <label for="nickInput" class="form-label">Nickname</label>
+                    <input class="form-control" id="nickInput">
+                </div>
+                <button id="submitPlayer" type="submit" class="btn btn-light">Submit</button>
+            </form>
+        </div>
 
-    <div id="game">
-        <div id="gamePanelWrapper">
-            <div id="gamePanel">
+<!--        ///-->
+
+        <div id="rooms" class="mb-3">
+            <button type="button" id="createRoom" class="btn btn-light">Create room</button>
+            <ul id="roomList">
+
+            </ul>
+        </div>
+
+        <div id="game" class="col-12">
+            <div id="gamePanelWrapper" class="col-6">
+                <div id="gamePanel">
+                </div>
+            </div>
+
+            <div id="actualRoom" class="col-3">
+                <button type="button" id="startGameBtn" class="startButton btn btn-dark" style="display: none">START</button>
+                <ul id="playersInRoom">
+
+                </ul>
+                <div id="clock">01:00</div>
+            </div>
+
+            <div id="scoreBoard" style="display: none">
+                <span>TABELA WYNIKÓW</span>
+                <ul id="score">
+
+                </ul>
             </div>
         </div>
 
-        <div id="actualRoom">
-            <button type="button" id="startGameBtn" style="display: none">START</button>
-            <ul id="playersInRoom">
+<!--        ///-->
 
-            </ul>
-            <div id="clock">01 : 00</div>
-        </div>
+    </main>
 
-        <div id="scoreBoard" style="display: none">
-            <span>TABELA WYNIKÓW</span>
-            <ul id="score">
-
-            </ul>
-        </div>
-    </div>
-
+    <footer class="mt-auto text-white-50">
+        <p>App created by <a href="https://github.com/pawel-bogdan" class="text-white">pawel-bogdan</a> and <a href="https://github.com/OmanDominik" class="text-white">dominik-omanski</a>.</p>
+    </footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
 <script src="scripts.js"></script>
 </body>
 </html>

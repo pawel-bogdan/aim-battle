@@ -2,6 +2,8 @@ const SUBMIT_PLAYER_BTN = document.getElementById('submitPlayer');
 const CREATE_ROOM_BTN = document.getElementById('createRoom');
 const START_GAME_BTN = document.getElementById('startGameBtn');
 const GAME_PANEL = document.getElementById('gamePanel');
+const LOGIN = document.getElementById('login');
+
 let greenCrosshair;
 let blueCrosshair;
 let redCrosshair;
@@ -29,6 +31,7 @@ let addTargetSubscription;
 let mpUpdateSubscription;
 let pointsUpdateSubscription;
 
+LOGIN.onclick = displayLoginForm;
 SUBMIT_PLAYER_BTN.onclick = displayRooms;
 CREATE_ROOM_BTN.onclick = createRoom;
 START_GAME_BTN.onclick = startGame;
@@ -36,6 +39,11 @@ GAME_PANEL.onmousemove = updateMousePosition;
 
 connectToServer();
 readAllActualRooms();
+
+function displayLoginForm(){
+    document.getElementById('mainPageInfo').style.display = 'none';
+    document.getElementById('nick').style.display = 'block';
+}
 
 function displayRooms() {
     player = document.getElementById('nickInput').value;
@@ -100,7 +108,15 @@ function connectToServer() {
                 });
                 for (const [key, value] of playersMap.entries()) {
                     let playerElem = document.createElement('li')
-                    playerElem.innerHTML = `${key} ${value.nick} <span id="${value.nick}Points">0</span>`;
+                    playerElem.classList.add('playerInfo');
+                    let squareColor = 'green';
+                    if(key === 'blue')
+                        squareColor = 'blue';
+                    else if(key === 'red')
+                        squareColor = 'red';
+                    else if(key === 'yellow')
+                    squareColor = 'yellow';
+                    playerElem.innerHTML = `<div class="playerWrapper"><div class="colorSquare" style="background-color: ${squareColor};"></div>${value.nick}</div> <span id="${value.nick}Points">0</span>`;
                     document.getElementById('playersInRoom').appendChild(playerElem);
 
                     if (currentColor !== key.toLowerCase()) {
@@ -141,14 +157,15 @@ function connectToServer() {
             roomElem.dataset['roomId'] = roomObj.id;
             roomElem.id = `roomList${roomObj.id}`;
             roomElem.classList.add('room');
-            roomElem.innerHTML = `<p>Pokoj ${roomObj.id}. (${new Map(Object.entries(roomObj.players)).size} / 4) </p> 
-           <button type="button" id="room${roomObj.id}" room-id="${roomObj.id}" onclick="joinToRoom(${roomObj.id})">DOŁĄCZ</button>`;
+            roomElem.innerHTML = `<p>Pokoj ${roomObj.id}. (${new Map(Object.entries(roomObj.players)).size} / 4) 
+<button type="button" id="room${roomObj.id}" room-id="${roomObj.id}" class="btn btn-light btn-sm" onclick="joinToRoom(${roomObj.id})">DOŁĄCZ</button></p>`;
             document.getElementById('roomList').appendChild(roomElem);
             if (currentRoomId === roomObj.id) {
                 let playersMap = new Map(Object.entries(roomObj.players));
                 for (const [key, value] of playersMap.entries()) {
                     let playerElem = document.createElement('li')
-                    playerElem.innerHTML = `${key} ${value.nick} <span id="${value.nick}Points">0</span>`;
+                    playerElem.classList.add('playerInfo');
+                    playerElem.innerHTML = `<div class="playerWrapper"><div class="colorSquare" style="background-color: green;"></div>${value.nick}</div> <span id="${value.nick}Points">0</span>`;
                     document.getElementById('playersInRoom').appendChild(playerElem);
                 }
             }
@@ -248,7 +265,7 @@ async function deleteGame() {
 function displayTimer() {
     seconds--;
     if (seconds == 0 && minutes == 0) {
-        timerRef.innerHTML = `00 : 00`;
+        timerRef.innerHTML = `00:00`;
         clearInterval(time);
         finishGame();
     } else {
@@ -258,7 +275,7 @@ function displayTimer() {
             seconds = 59;
         let m = minutes < 10 ? "0" + minutes : minutes;
         let s = seconds < 10 ? "0" + seconds : seconds;
-        timerRef.innerHTML = `${m} : ${s}`;
+        timerRef.innerHTML = `${m}:${s}`;
     }
 }
 
@@ -341,8 +358,8 @@ function readAllActualRooms() {
             roomElem.dataset['roomId'] = room.id;
             roomElem.id = `roomList${room.id}`;
             roomElem.classList.add('room');
-            roomElem.innerHTML = `<p>Pokoj ${room.id}. (${new Map(Object.entries(room.players)).size} / 4) </p> 
-           <button type="button" id="room${room.id}" room-id="${room.id}" onclick="joinToRoom(${room.id})">DOŁĄCZ</button>`;
+            roomElem.innerHTML = `<p>Pokoj ${room.id}. (${new Map(Object.entries(room.players)).size} / 4) 
+<button type="button" id="room${room.id}" room-id="${room.id}" class="btn btn-light btn-sm" onclick="joinToRoom(${room.id})">DOŁĄCZ</button></p>`;
             roomListElem.appendChild(roomElem);
             if (new Map(Object.entries(room.players)).size === 4) {
                 document.getElementById(`room${room.id}`).disabled = true;
