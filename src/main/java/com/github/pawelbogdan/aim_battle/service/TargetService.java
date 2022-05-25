@@ -10,6 +10,6 @@ public class TargetService {
     private Random random = new Random();
 
     public Target createTarget() {
-        return new Target(random.nextInt(96), random.nextInt(96));
+        return new Target(random.nextInt(90), random.nextInt(90));
     }
 }

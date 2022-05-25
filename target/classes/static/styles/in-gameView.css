@@ -34,13 +34,13 @@
     width: 6vh;
     height: 6vh;
     border-radius: 50%;
-    -webkit-animation: grow 4s;
+    -webkit-animation: grow 3s;
     z-index: 5;
 }
 
 @-webkit-keyframes grow {
     0% {
-        -webkit-transform: scale( 0 );-moz-transform: scale( 0 );-o-transform: scale( 0 );-ms-transform: scale( 0 );transform: scale( 0 );
+        -webkit-transform: scale( 0.3 );-moz-transform: scale( 0.3 );-o-transform: scale( 0.3 );-ms-transform: scale( 0.3 );transform: scale( 0.3 );
     }
 
     100% {
