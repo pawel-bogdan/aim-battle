@@ -29,21 +29,18 @@
             <h1>Challange your friend!</h1>
             <p class="lead">Compete with your friends, see which of you is the fastest and most accurate!</p>
             <p class="lead">
-                <a id="login" href="#" class="btn btn-lg btn-secondary fw-bold border-white bg-white">Log in</a>
+                <button id="login" type="submit" class="btn btn-lg btn-secondary fw-bold border-white bg-white">Log in
+                </button>
             </p>
         </div>
 
         <div id="nick">
-            <form>
-                <div class="mb-3">
-                    <label for="nickInput" class="form-label">Nickname</label>
-                    <input class="form-control" id="nickInput">
-                </div>
-                <button id="submitPlayer" type="submit" class="btn btn-light">Submit</button>
-            </form>
+            <div class="mb-3">
+                <label for="nickInput" class="form-label">Nickname</label>
+                <input class="form-control" id="nickInput">
+            </div>
+            <button id="submitPlayer" type="submit" class="btn btn-light">Submit</button>
         </div>
-
-<!--        ///-->
 
         <div id="rooms" class="mb-3">
             <button type="button" id="createRoom" class="btn btn-light">Create room</button>
@@ -59,7 +56,8 @@
             </div>
 
             <div id="actualRoom" class="col-3">
-                <button type="button" id="startGameBtn" class="startButton btn btn-dark" style="display: none">START</button>
+                <button type="button" id="startGameBtn" class="startButton btn btn-dark" style="display: none">START
+                </button>
                 <ul id="playersInRoom">
 
                 </ul>
@@ -67,23 +65,24 @@
             </div>
 
             <div id="scoreBoard" style="display: none">
-                <span>TABELA WYNIKÓW</span>
+                <span>Tabela Wyników</span>
                 <ul id="score">
 
                 </ul>
             </div>
         </div>
 
-<!--        ///-->
 
     </main>
 
     <footer class="mt-auto text-white-50">
-        <p>App created by <a href="https://github.com/pawel-bogdan" class="text-white">pawel-bogdan</a> and <a href="https://github.com/OmanDominik" class="text-white">dominik-omanski</a>.</p>
+        <p>App created by <a href="https://github.com/pawel-bogdan" class="text-white">pawel-bogdan</a> and <a
+                href="https://github.com/OmanDominik" class="text-white">dominik-omanski</a>.</p>
     </footer>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
 <script src="scripts.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
+        crossorigin="anonymous"></script>
 </body>
 </html>

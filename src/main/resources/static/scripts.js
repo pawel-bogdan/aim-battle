@@ -2,7 +2,7 @@ const SUBMIT_PLAYER_BTN = document.getElementById('submitPlayer');
 const CREATE_ROOM_BTN = document.getElementById('createRoom');
 const START_GAME_BTN = document.getElementById('startGameBtn');
 const GAME_PANEL = document.getElementById('gamePanel');
-const LOGIN = document.getElementById('login');
+const LOGIN_BTN = document.getElementById('login');
 
 let greenCrosshair;
 let blueCrosshair;
@@ -31,7 +31,7 @@ let addTargetSubscription;
 let mpUpdateSubscription;
 let pointsUpdateSubscription;
 
-LOGIN.onclick = displayLoginForm;
+LOGIN_BTN.onclick = displayLoginForm;
 SUBMIT_PLAYER_BTN.onclick = displayRooms;
 CREATE_ROOM_BTN.onclick = createRoom;
 START_GAME_BTN.onclick = startGame;
@@ -40,7 +40,8 @@ GAME_PANEL.onmousemove = updateMousePosition;
 connectToServer();
 readAllActualRooms();
 
-function displayLoginForm(){
+
+function displayLoginForm() {
     document.getElementById('mainPageInfo').style.display = 'none';
     document.getElementById('nick').style.display = 'block';
 }
@@ -110,12 +111,12 @@ function connectToServer() {
                     let playerElem = document.createElement('li')
                     playerElem.classList.add('playerInfo');
                     let squareColor = 'green';
-                    if(key === 'blue')
+                    if (key === 'blue')
                         squareColor = 'blue';
-                    else if(key === 'red')
+                    else if (key === 'red')
                         squareColor = 'red';
-                    else if(key === 'yellow')
-                    squareColor = 'yellow';
+                    else if (key === 'yellow')
+                        squareColor = 'yellow';
                     playerElem.innerHTML = `<div class="playerWrapper"><div class="colorSquare" style="background-color: ${squareColor};"></div>${value.nick}</div> <span id="${value.nick}Points">0</span>`;
                     document.getElementById('playersInRoom').appendChild(playerElem);
 
@@ -221,6 +222,7 @@ async function finishGame() {
     addTargetSubscription.unsubscribe();
     mpUpdateSubscription.unsubscribe();
     pointsUpdateSubscription.unsubscribe();
+    let place = 1;
     const scoreBoard = document.getElementById("score");
     document.getElementById("scoreBoard").style.display = 'block';
     await fetch(`/aim-battle/games/${currentGameId}/score`).then(response => response.json())
@@ -229,8 +231,9 @@ async function finishGame() {
 
             data.forEach(pair => {
                 let playerPosition = document.createElement('li');
-                playerPosition.innerHTML = `${pair.value0.nick}        <span>${pair.value1}</span>`
+                playerPosition.innerHTML = `${place}.                   ${pair.value0.nick}        <span>${pair.value1}</span>`
                 scoreBoard.appendChild(playerPosition);
+                place = place + 1;
             })
 
         });
