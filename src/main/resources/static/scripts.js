@@ -37,13 +37,16 @@ CREATE_ROOM_BTN.onclick = createRoom;
 START_GAME_BTN.onclick = startGame;
 GAME_PANEL.onmousemove = updateMousePosition;
 
-connectToServer();
-readAllActualRooms();
 
-
-function displayLoginForm() {
-    document.getElementById('mainPageInfo').style.display = 'none';
+async function displayLoginForm() {
+    document.location = '/loginsss';
+    /*await fetch('/login', {
+        mode: 'no-cors'
+    });*/
+    /*document.getElementById('mainPageInfo').style.display = 'none';
     document.getElementById('nick').style.display = 'block';
+    connectToServer();
+    readAllActualRooms();*/
 }
 
 function displayRooms() {
@@ -203,7 +206,9 @@ async function joinToRoom(roomId) {
     document.getElementById('rooms').style.display = 'none';
     document.getElementById('game').style.display = 'block';
 
-    await fetch(`/aim-battle/rooms/${roomId}`).then(response => response.json()).then(data => {
+    await fetch(`/aim-battle/rooms/${roomId}`, {
+        mode: 'no-cors'
+    }).then(response => response.json()).then(data => {
         playersMap = new Map(Object.entries(data.players));
         currentColor = colors.get(playersMap.size + 1);
         document.getElementById("gamePanel").removeAttribute('class');
@@ -225,7 +230,9 @@ async function finishGame() {
     let place = 1;
     const scoreBoard = document.getElementById("score");
     document.getElementById("scoreBoard").style.display = 'block';
-    await fetch(`/aim-battle/games/${currentGameId}/score`).then(response => response.json())
+    await fetch(`/aim-battle/games/${currentGameId}/score`, {
+        mode: 'no-cors'
+    }).then(response => response.json())
         .then(data => {
             console.log("Dane ", data);
 
@@ -244,12 +251,18 @@ async function finishGame() {
 async function deleteGame() {
     if (currentColor === 'green') {
         console.log("wysylanie reqs");
-        await fetch(`/aim-battle/games/${currentGameId}`, {method: 'DELETE'}).then(response => response.json())
+        await fetch(`/aim-battle/games/${currentGameId}`, {
+            mode: 'no-cors',
+            method: 'DELETE'}
+        ).then(response => response.json())
             .then(data => {
                 console.log(data);
             });
 
-        await fetch(`/aim-battle/rooms/${currentRoomId}`, {method: 'DELETE'}).then(response => response.json())
+        await fetch(`/aim-battle/rooms/${currentRoomId}`, {
+            mode: 'no-cors',
+            method: 'DELETE'}
+        ).then(response => response.json())
             .then(data => {
                 console.log(data);
             });
@@ -353,7 +366,9 @@ function connectToGame() {
 }
 
 function readAllActualRooms() {
-    fetch(`/aim-battle/rooms`).then(response => response.json()).then(data => {
+    fetch(`/aim-battle/rooms`, {
+        mode: 'no-cors'
+    }).then(response => response.json()).then(data => {
         document.getElementById('roomList').innerHTML = "";
         let roomListElem = document.getElementById('roomList');
         data.forEach(room => {
