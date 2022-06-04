@@ -2,7 +2,7 @@ const SUBMIT_PLAYER_BTN = document.getElementById('submitPlayer');
 const CREATE_ROOM_BTN = document.getElementById('createRoom');
 const START_GAME_BTN = document.getElementById('startGameBtn');
 const GAME_PANEL = document.getElementById('gamePanel');
-const LOGIN_BTN = document.getElementById('login');
+const LOGOUT_BTN = document.getElementById('logout');
 
 let greenCrosshair;
 let blueCrosshair;
@@ -31,22 +31,15 @@ let addTargetSubscription;
 let mpUpdateSubscription;
 let pointsUpdateSubscription;
 
-LOGIN_BTN.onclick = displayLoginForm;
 SUBMIT_PLAYER_BTN.onclick = displayRooms;
 CREATE_ROOM_BTN.onclick = createRoom;
 START_GAME_BTN.onclick = startGame;
 GAME_PANEL.onmousemove = updateMousePosition;
-
+LOGOUT_BTN.onclick = signOut;
 
 async function displayLoginForm() {
-    document.location = '/loginsss';
-    /*await fetch('/login', {
-        mode: 'no-cors'
-    });*/
-    /*document.getElementById('mainPageInfo').style.display = 'none';
-    document.getElementById('nick').style.display = 'block';
     connectToServer();
-    readAllActualRooms();*/
+    readAllActualRooms();
 }
 
 function displayRooms() {
@@ -206,9 +199,7 @@ async function joinToRoom(roomId) {
     document.getElementById('rooms').style.display = 'none';
     document.getElementById('game').style.display = 'block';
 
-    await fetch(`/aim-battle/rooms/${roomId}`, {
-        mode: 'no-cors'
-    }).then(response => response.json()).then(data => {
+    await fetch(`/aim-battle/rooms/${roomId}`).then(response => response.json()).then(data => {
         playersMap = new Map(Object.entries(data.players));
         currentColor = colors.get(playersMap.size + 1);
         document.getElementById("gamePanel").removeAttribute('class');
@@ -230,9 +221,7 @@ async function finishGame() {
     let place = 1;
     const scoreBoard = document.getElementById("score");
     document.getElementById("scoreBoard").style.display = 'block';
-    await fetch(`/aim-battle/games/${currentGameId}/score`, {
-        mode: 'no-cors'
-    }).then(response => response.json())
+    await fetch(`/aim-battle/games/${currentGameId}/score`).then(response => response.json())
         .then(data => {
             console.log("Dane ", data);
 
@@ -252,7 +241,6 @@ async function deleteGame() {
     if (currentColor === 'green') {
         console.log("wysylanie reqs");
         await fetch(`/aim-battle/games/${currentGameId}`, {
-            mode: 'no-cors',
             method: 'DELETE'}
         ).then(response => response.json())
             .then(data => {
@@ -260,7 +248,6 @@ async function deleteGame() {
             });
 
         await fetch(`/aim-battle/rooms/${currentRoomId}`, {
-            mode: 'no-cors',
             method: 'DELETE'}
         ).then(response => response.json())
             .then(data => {
@@ -366,9 +353,7 @@ function connectToGame() {
 }
 
 function readAllActualRooms() {
-    fetch(`/aim-battle/rooms`, {
-        mode: 'no-cors'
-    }).then(response => response.json()).then(data => {
+    fetch(`/aim-battle/rooms`).then(response => response.json()).then(data => {
         document.getElementById('roomList').innerHTML = "";
         let roomListElem = document.getElementById('roomList');
         data.forEach(room => {
@@ -408,4 +393,46 @@ function initCrosshairs() {
     yellowCrosshair.src = 'images/crosshair_yellow.png';
     yellowCrosshair.classList.add('opponentCrosshair');
 
+}
+
+function handleCredentialResponse(response) {
+
+    function decodeJwtResponse (token) {
+        let base64Url = token.split('.')[1];
+        let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    };
+
+    document.getElementById('mainPageInfo').style.display = 'none';
+    document.getElementById('nick').style.display = 'block';
+
+    const responsePayload = decodeJwtResponse(response.credential);
+
+    document.getElementById('googleInfo').style.display = 'inline-block';
+    document.getElementById('logout').style.visibility = "visible";
+    document.getElementById('googleImg').src = responsePayload.picture;
+    document.getElementById('googleEmail').innerHTML = responsePayload.email;
+
+    displayLoginForm();
+}
+
+window.onload = function () {
+    google.accounts.id.initialize({
+        client_id: "117900705905-019eu1qq5dsgg9ev16t4upji9cpp02hq.apps.googleusercontent.com",
+        callback: handleCredentialResponse
+    });
+    google.accounts.id.renderButton(
+        document.getElementById("login"),
+        { theme: "outline", size: "large" }
+    );
+    google.accounts.id.prompt();
+}
+
+function signOut() {
+    google.accounts.id.disableAutoSelect();
+    window.location.reload();
 }

@@ -14,7 +14,7 @@
     <script src="/webjars/jquery/jquery.min.js"></script>
     <script src="/webjars/sockjs-client/sockjs.min.js"></script>
     <script src="/webjars/stomp-websocket/stomp.min.js"></script>
-
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="d-flex h-100 text-center text-white bg-dark">
 <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
@@ -25,11 +25,18 @@
     </header>
 
     <main class="px-3">
+
+        <div id="googleInfo">
+            <h1 id="googleEmail"></h1>
+            <img id="googleImg">
+            <button id="logout" type="submit" class="btn btn-lg btn-secondary fw-bold border-white bg-white">Log out</button>
+        </div>
+
         <div id="mainPageInfo">
             <h1>Challange your friend!</h1>
             <p class="lead">Compete with your friends, see which of you is the fastest and most accurate!</p>
             <p class="lead">
-                <button id="login" type="submit" class="btn btn-lg btn-secondary fw-bold border-white bg-white">Log in
+                <button id="login" type="submit" class="btn btn-lg btn-secondary fw-bold border-white bg-white">
                 </button>
             </p>
         </div>

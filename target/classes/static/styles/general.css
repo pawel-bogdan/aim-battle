@@ -3,3 +3,29 @@ ul {
     padding-left: 0;
     padding-top: 0.2vh;
 }
+
+#logout{
+    font-size: 1vw;
+    margin: 0 1vw;
+}
+
+#googleInfo{
+    position: absolute;
+    display: none;
+    top: 2vh;
+    right: 2vw;
+    width: 35vw;
+    height: 7vh;
+}
+
+#googleInfo h1{
+    display: inline;
+    margin: 0 1vw;
+    font-size: 1.5vw;
+}
+
+#googleInfo img{
+    width: 4vw;
+    height: 4vw;
+    border-radius: 10px;
+}
