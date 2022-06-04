@@ -1,3 +1,4 @@
+const GOOGLE_CLIENT_ID = "117900705905-019eu1qq5dsgg9ev16t4upji9cpp02hq.apps.googleusercontent.com";
 const SUBMIT_PLAYER_BTN = document.getElementById('submitPlayer');
 const CREATE_ROOM_BTN = document.getElementById('createRoom');
 const START_GAME_BTN = document.getElementById('startGameBtn');
@@ -422,7 +423,7 @@ function handleCredentialResponse(response) {
 
 window.onload = function () {
     google.accounts.id.initialize({
-        client_id: "117900705905-019eu1qq5dsgg9ev16t4upji9cpp02hq.apps.googleusercontent.com",
+        client_id: GOOGLE_CLIENT_ID,
         callback: handleCredentialResponse
     });
     google.accounts.id.renderButton(
